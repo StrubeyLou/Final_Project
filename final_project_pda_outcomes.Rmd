@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Template
+
+
+Context
+
+Business intelligence and data-driven decision making
+
+**What insights can the business/organisation gain from your analysis and how will your analysis help the business/organisation make better decisions?**
+
+I have been hired by LoansClub who provide loans across the United States to thousdands of different people. It is my job to find out the default rate of people failing to pay their loans and to see if there are any trends that can be found to reduce the number of people who are given loans they may not be able to afford in future.
+
+**Briefly describe the business/organisation and where your analysis fits within its aims/activity.**
+
+Data
+Internal and external data sources
+
+**Briefly describe your data sources and which were internal (provided by the organisation) and external (not sourced from the organisation’s data)** 
+
+All three datasets used are internal. There is the full dataset of the LendingClub loans from June 2007 to December 2011 with over 40,000 loans given. The other two datasets are consolodation of the grades for each candidate's credit rating and a dictionary for state names where they provide loans to.
+
+**What kind of data did you work with? E.g. categorical and numerical data and their sub-types.**
+
+The LendingClub loans dataset is a mix of numerical and categorical. The numerical data gives details like the amount of loan is given, the interest being given for the loan and the applicant's annual income.  When it comes to categorical data there is the term which the loan was paid for, the reason they wanted the loan and whether the loan has been paid off or not.
+
+**What format did your data come in? E.g. all downloaded flat files (CSV) or any data from APIs, scraping etc.**
+
+All the datasets are flat files from csv. 
+
+**Briefly describe the quality of the data and whether you have any reasons to suggest the data is biased e.g. only data from a specific demographic even though a broader demographic would be of interest to the organisation.**
+
+The only thing that could be considered a bias is that every applicant needs to be in a job. However this will to ensure security over the repayment of loans by the applicants.
+
+**Do you have any ethical concerns regarding the sourcing and extraction of your data?** 
+The zip codes of each candidate are partially sensored but when cleaning these will be fully taken out. 
+
+**Are there any ethical implications of the business requirements?**
+
+The business needs to keep people's details private so keeping the names and addresses of each candidate is important. 
+
+**What were the main stages in your data analysis process?**
+R will be used to clean and analyse the data. 
+
+**What were the main tools you used for your analysis?**
+Descriptive, diagnostic, predictive and prescriptive analysis
+
+Descriptive Analytics - Using tidyverse and ggplot to get statistical findings from the data and ggplot to visualise them 
+
+
+Please report under which of the below categories your analysis falls and why (can be more than one)
+
+Descriptive Analytics tells you what happened in the past.
+
+Diagnostic Analytics helps you understand why something happened in the past.
+
+Predictive Analytics predicts what is most likely to happen in the future.
+
+Prescriptive Analytics recommends actions you can take to affect those outcomes.
