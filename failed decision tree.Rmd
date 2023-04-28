@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+```
+
+
+```{r}
+lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
+```
+
+```{r}
+lending_tree <- lending %>% 
+  select(-c(loan_amnt, installment, emp_title, issue_d, desc, title, state_abb, total_pymnt_inv, profit_loss, state_name, sub_grade, emp_length, home_ownership, purpose, grade)) %>% 
+  mutate_if(is_character, as_factor)
+```
+
+```{r}
+lending_fit <- rpart(
+  formula = loan_status ~.,
+  data = lending_tree,
+  method = "class"
+)
+
+rpart.plot(lending_fit,
+           yesno = 2,
+           fallen.leaves = TRUE,
+           faclen = 6,
+           digits = 2,
+           split.border.col = 1,
+           tweak = 0.1)
+```
+
+*Fun Fact!* The decision trees do not work in this dataset so that is an hour and a bit wasted from today so I am pretty annoyed. We'll have to stick with the logistic regression model even though it looks kind of pants. 
+
+Let's try making a random forest to see how it goes... 
+
+```{r}
+library(ranger)
+```
+
+```{r}
+lend_classifier <- ranger(formula = loan_status ~ .,
+                          data = lending_tree,
+                          importance = "impurity",
+                        num.trees = 1000, 
+                        mtry = 2, 
+                        min.node.size = 5)
+lend_classifier
+```
+
+```{r}
+importance(lend_classifier)
+```
+
+```{r}
+lending_pred <- lending_tree %>% 
+  mutate(pred = predict(lend_classifier,
+                        data = lending_tree)$predictions)
+```
+
+```{r}
+library(broom)
+library(yardstick)
+```
+
+```{r}
+conf_mat <- lending_pred %>% 
+  conf_mat(truth = loan_status, estimate = pred)
+
+conf_mat
+```
+
+```{r}
+lending_pred %>% 
+  sensitivity(truth = loan_status, estimate = pred)
+
+lending_pred %>% 
+  specificity(truth = loan_status, estimate = pred)
+```
+

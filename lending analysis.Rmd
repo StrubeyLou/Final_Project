@@ -1,0 +1,158 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = issue_d, y = profit_loss))+
+  geom_col()
+```
+```{r}
+ggplot(lending) +
+  geom_bar(aes(x = purpose, fill = loan_status), position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = purpose, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = sub_grade, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = grade, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = state_name, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = home_ownership, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = verification_status, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = interest_rate, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = emp_length, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = term, fill = loan_status))+
+  geom_bar(position = "dodge")+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(interest_rate) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  ggplot(aes(x = interest_rate, y = profit_loss))+
+  geom_col()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = int_rate, y = profit_loss))+
+  geom_point()
+```
+
+```{r}
+lending %>% 
+  group_by(purpose) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  ggplot(aes(x = purpose, y = profit_loss))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = annual_inc, y = profit_loss))+
+  geom_point()
+```
+
+```{r}
+lending %>% 
+  group_by(loan_status) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(sub_grade) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(term) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = loan_amnt, y = profit_loss))+
+  geom_point()
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = sub_grade, y = annual_inc))+
+  geom_col()
+```
+

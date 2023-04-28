@@ -1,0 +1,289 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(pROC)
+library(modelr)
+```
+
+```{r}
+lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
+```
+
+```{r}
+lending_model <- lending %>% 
+  select(-c(loan_amnt, installment, emp_title, issue_d, desc, title, state_abb, total_pymnt_inv, profit_loss, state_name, sub_grade)) %>% 
+  mutate_if(is_character, as_factor)
+```
+
+```{r}
+alias(loan_status ~ ., data = lending_model)
+```
+
+
+```{r}
+lending_model1 <- lending_model %>% 
+  select(term, int_rate, emp_length, home_ownership, interest_rate, loan_status)
+```
+
+```{r}
+lending_model2 <- lending_model %>% 
+  select(annual_inc, verification_status, purpose, loan_status)
+```
+
+```{r}
+lending_model3 <- lending_model %>% 
+select(dti, delinq_2yrs, fico_range_low, total_acc, grade, loan_status)
+```
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(lending_model1)
+```
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(lending_model2)
+```
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(lending_model3)
+```
+
+```{r}
+model_a <- glm(loan_status ~ .,
+               data = lending_model1,
+               family = binomial(link = "logit"))
+summary(model_a)
+```
+
+From model a the most important factors are interest rate (numeric version) and term of loan. 
+
+```{r}
+model_b <- glm(loan_status ~ ., 
+               data = lending_model2,
+               family = binomial(link = "logit"))
+
+summary(model_b)
+```
+**use anova for testing significance of purpose**
+
+From model b the most important factors are annual income and verification status. The purpose for the loan is mixed so should be explored. 
+
+**verification_status taken out because it no longer fits a good model**
+
+```{r}
+model_c <- glm(loan_status ~ .,
+               data = lending_model3,
+               family = binomial(link = "logit"))
+summary(model_c)
+```
+
+From model c the most important factors are grade, total_acc and dti. I would also like to keep fico as it is the equivalent of a credit score. 
+
+**total_acc was taken out of model as when added with other financial categories it was no longer significant.**
+
+```{r}
+model_finance <- glm(loan_status ~ annual_inc + dti + fico_range_low,
+                     data = lending_model,
+                     family = binomial(link = "logit"))
+
+summary(model_finance)
+```
+
+```{r}
+model_category <- glm(loan_status ~ term + int_rate,
+                      data = lending_model,
+                      family = binomial(link = "logit"))
+
+summary(model_category)
+```
+
+
+```{r}
+model_grade <- glm(loan_status ~ sub_grade,
+                   data = lending_model,
+                   family = binomial(link = "logit"))
+
+summary(model_grade)
+```
+
+```{r}
+lending_data_finance <- lending_model %>% 
+  add_predictions(model_finance, type = "response")
+
+head(lending_data_finance)
+```
+
+```{r}
+lending_data_category <- lending_model %>% 
+  add_predictions(model_category, type = "response")
+```
+
+```{r}
+lending_data_grades <- lending_model %>% 
+  add_predictions(model_grade, type = "response")
+```
+
+```{r}
+roc_lend_fin <- lending_data_finance %>% 
+  roc(response = loan_status, predictor = pred)
+
+roc_lend_cat <- lending_data_category %>% 
+  roc(response = loan_status, predictor = pred)
+
+roc_lend_grade <- lending_data_grades %>% 
+  roc(response = loan_status, predictor = pred)
+```
+
+```{r}
+roc_curve <- ggroc(
+  data = list(
+    mod1 = roc_lend_fin,
+    mod2 = roc_lend_cat,
+    mod3 = roc_lend_grade
+  ),
+  legacy.axes = TRUE) +
+  coord_fixed()
+
+roc_curve
+```
+
+```{r}
+auc(roc_lend_fin)
+auc(roc_lend_cat)
+auc(roc_lend_grade)
+```
+
+**Back to the drawing board** 
+
+Let's see how we get on with a potentially overfit model.
+
+
+```{r}
+model_all <- glm(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate,
+                 data = lending_model,
+                 family = binomial(link = "logit"))
+summary(model_all)
+```
+
+```{r}
+lend_data_all <- lending_model %>% 
+  add_predictions(model_all, type = "response")
+```
+
+```{r}
+roc_lend_all <- lend_data_all %>% 
+  roc(response = loan_status, predictor = pred)
+```
+
+```{r}
+roc_curve_all <- ggroc(data = list(
+  "Built Model" = roc_lend_all,
+  "Grade Model" = roc_lend_grade),
+                   legacy.axes = TRUE) +
+  labs(x = "Specificity", y = "Sensitivity", linetype="Model Name")+ 
+  coord_fixed()
+
+roc_curve_all
+```
+
+```{r}
+auc(roc_lend_all)
+auc(roc_lend_grade)
+```
+
+```{r}
+library(caret)
+```
+
+```{r}
+cv_10_fold_model <- trainControl(method = "cv",
+                                 number = 10,
+                                 savePredictions = TRUE)
+```
+
+```{r}
+model <- train(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate,
+               data = lending_model,
+               trControl = cv_10_fold_model,
+               method = "glm",
+               family = binomial(link = "logit"),
+               metric = "accuracy")
+```
+
+```{r}
+summary(model)
+```
+
+```{r}
+model$pred
+```
+
+```{r}
+model$resample
+```
+
+```{r}
+mean(model$resample$Kappa)
+```
+
+**new k-fold model**
+
+```{r}
+folds <- createFolds(lending_model$loan_status, k = 10, list = TRUE, returnTrain = FALSE)
+
+lr_auc <- function(train, test) {
+  lr_model <- glm(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate, data = train, family = binomial)
+  pred <- predict(lr_model, test, type = "response")
+  roc(test$loan_status, pred)$auc
+}
+
+```
+
+```{r}
+lending_model_test1 <- lending_model %>% 
+  slice(folds$Fold01)
+
+lending_model_train1 <- lending_model %>% 
+  slice(-folds$Fold01)
+
+lr_auc_results1 <- lr_auc(lending_model_train1, lending_model_test1)
+```
+```{r}
+auc_results <- NULL
+```
+
+```{r}
+for (i in 1:length(folds)) {
+  auc_results[i] <- lr_auc(lending_model %>% slice(-folds[[i]]),
+                           lending_model %>% slice(folds[[i]]))
+}
+
+mean(auc_results)
+```
+
+```{r}
+lr_auc_grades <- function(train, test) {
+  lr_model_grades <- glm(loan_status ~ grade, data = train, family = binomial)
+  pred <- predict(lr_model_grades, test, type = "response")
+  roc(test$loan_status, pred)$auc
+}
+```
+
+
+```{r}
+auc_results_grades <- NULL
+for (i in 1:length(folds)) {
+  auc_results_grades[i] <- lr_auc_grades(lending_model %>% slice(-folds[[i]]),
+                           lending_model %>% slice(folds[[i]]))
+}
+  
+mean(auc_results_grades)
+```
+```{r}
+
+```
+

@@ -1,0 +1,189 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(pROC)
+library(modelr)
+```
+
+
+```{r}
+lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
+```
+
+```{r}
+lending_model <- lending %>% 
+  mutate_if(is_character, as_factor)
+```
+
+```{r}
+n_data_lend <- nrow(lending_model)
+
+test_index <- sample(1:n_data_lend, size = n_data_lend*0.2)
+
+test_lend  <- slice(lending_model, test_index)
+train_lend <- slice(lending_model, -test_index)
+
+```
+
+```{r}
+model_predict <- glm(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate,
+                 data = train_lend,
+                 family = binomial(link = "logit"))
+summary(model_predict)
+```
+
+```{r}
+model_grade <- glm(loan_status ~ sub_grade,
+                   data = train_lend,
+                   family = binomial(link = "logit"))
+summary(model_grade)
+```
+
+```{r}
+lend_predict <- train_lend %>% 
+  add_predictions(model_predict, type = "response")
+
+lend_grade <- train_lend %>% 
+  add_predictions(model_grade, type = "response")
+```
+
+```{r}
+roc_lend_predict <- lend_predict %>% 
+  roc(response = loan_status, predictor = pred)
+
+roc_lend_grade <- lend_grade %>% 
+  roc(response = loan_status, predictor = pred)
+```
+```{r}
+roc_curve <- ggroc(data = list(
+  "Built Model" = roc_lend_predict,
+  "Grade Model" = roc_lend_grade),
+                   legacy.axes = TRUE) +
+  labs(x = "Specificity", y = "Sensitivity", linetype="Model Name")+ 
+  coord_fixed()
+
+roc_curve
+```
+
+```{r}
+auc(roc_lend_predict)
+auc(roc_lend_grade)
+```
+
+```{r}
+library(caret)
+```
+
+
+```{r}
+cv_10_fold_model <- trainControl(method = "cv",
+                                 number = 10,
+                                 savePredictions = TRUE)
+```
+
+```{r}
+model_pred <- train(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate,
+               data = train_lend,
+               trControl = cv_10_fold_model,
+               method = "glm")
+```
+
+```{r}
+model_pred$resample
+```
+
+```{r}
+model_grade <- train(loan_status ~ sub_grade,
+               data = train_lend,
+               trControl = cv_10_fold_model,
+               method = "glm")
+```
+
+```{r}
+model_grade$resample
+```
+
+```{r}
+model_pred_test <- train(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate,
+               data = test_lend,
+               trControl = cv_10_fold_model,
+               method = "glm")
+```
+
+
+```{r}
+summary(model_pred_test)
+```
+
+```{r}
+model_pred_test$resample
+```
+
+```{r}
+model_grade_test <- train(loan_status ~ grade,
+               data = test_lend,
+               trControl = cv_10_fold_model,
+               method = "glm")
+```
+
+```{r}
+model_grade_test$resample
+```
+
+
+```{r}
+folds <- createFolds(lending_model$loan_status, k = 10, list = TRUE, returnTrain = FALSE)
+
+lr_auc <- function(train, test) {
+  lr_model <- glm(loan_status ~ annual_inc + dti + fico_range_low + term + int_rate, data = train, family = binomial)
+  pred <- predict(lr_model, test, type = "response")
+  roc(test$loan_status, pred)$auc
+}
+
+```
+
+```{r}
+lending_model_test1 <- lending_model %>% 
+  slice(folds$Fold01)
+
+lending_model_train1 <- lending_model %>% 
+  slice(-folds$Fold01)
+
+lr_auc_results1 <- lr_auc(lending_model_train1, lending_model_test1)
+```
+```{r}
+auc_results <- NULL
+```
+
+```{r}
+for (i in 1:length(folds)) {
+  auc_results[i] <- lr_auc(lending_model %>% slice(-folds[[i]]),
+                           lending_model %>% slice(folds[[i]]))
+}
+
+mean(auc_results)
+```
+
+```{r}
+lr_auc_grades <- function(train, test) {
+  lr_model_grades <- glm(loan_status ~ sub_grade, data = train, family = binomial)
+  pred <- predict(lr_model_grades, test, type = "response")
+  roc(test$loan_status, pred)$auc
+}
+```
+
+
+```{r}
+auc_results_grades <- NULL
+for (i in 1:length(folds)) {
+  auc_results_grades[i] <- lr_auc_grades(lending_model %>% slice(-folds[[i]]),
+                           lending_model %>% slice(folds[[i]]))
+}
+  
+mean(auc_results_grades)
+```
