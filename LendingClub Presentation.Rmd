@@ -1,0 +1,153 @@
+---
+title: "LendingClub Presentation"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+lending <- read_csv("clean data/leanding_cleaning.csv")
+```
+
+
+Good morning folks, today I am going to be presenting my findings for LendingClub using their dataset. I will be telling you who LendingClub are, what they wanted us to find, the dataset that was used and my findings. I will be bringing recommendations to the table of how they can improve their business in the coming years. 
+
+Firstly to tell you who LendingClub are, they are a financial services company based in the United States who give out loans to people across all 50 states. They were the first to offer peer to peer loans which could be bought on the secondary market. LendingClub enabled borrowers to create unsecure personal loans where people were able to list about themselves as the borrower, amount of loan and loan purpose. LendingClub give them a loan grade and an interest rate.  Investors can then select loans they wanted to invest in based on this information. Investors make money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee. 
+
+What LendingClub wanted us to investigate is the default rate of the loans. They want to know who to avoid giving loans to and who they should be lending to in the future. I have looked into both the numerical factors and categorised variables which I will be exploring shortly. 
+
+The dataset is a massive document with 40,000 different loans which started from 2007 to 2011 with loans lasting either 3 years or 5 years. There were dozens of different variables with some being based on the background of the lender both based on their personal and financial history. 
+
+The data ethics were clearly considered because all information like their name, address or contact details was taken out. There was a partial zip code in the dataset but for our data cleaning this was taken out. 
+
+When it comes to our initial findings in the dataset loans varied from $500 to $35,000, with the average loan being $12,000 and interest rates varying from just over 5% to just under 25%. When it comes to the ratio of success the default rate is 14.5% to 85.5% fully paid loans. 
+
+As mentioned before each borrower is given a loan grade this is rated from A to G, then subcategorised with a number 1 to 5 with A1 being the highest going to A5 then G1 going down to G5 being the lowest. The lower the grade the more the loan is perceived as risky so they are given a higher interest rate as can be paid. Whether intentionally or not this is a good predictor for whether or not someone will default on their loan.
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(int_rate = mean(int_rate)) %>% 
+  ggplot(aes(x = grade, y = int_rate, fill = grade)) +
+  geom_col()+
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue"))+
+   labs(x = "Grade\n", y = "\nInterest Rate (%)", title = "Interest Rate over LendingClub Grades\n")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
+
+```
+
+
+The first thing I wanted to see was if I could make a predictor model better than LendingClub’s grade system so I made a two logistical regression models. A logistic regression model is where you take one or more independent variables to model the probability of an outcome. In this case we’ll be putting these factors together to find if it is less likely for the lender to default.
+
+The first model called the “Finance Model” I made was based on the finances of the lender so looked at the:
+
+The lender’s income - based on their self reported annual income in the application.
+The lenders DTI which is their debt divided by their income
+The lenders FICO credit score
+The interest LendingClub put on the loan
+
+In the second model called the “State Model” I looked at the factors that categorised the borrower which included:
+
+Which US state they lived in.
+The purpose of the loan.
+Length of Employment varying from under 1 year to over 10 years.
+Their home ownership status, rental, mortgage or owned outright.
+
+So how did we do? 
+
+Thankfuly there is a visualisation which shows how accurate your predictive model is. I present to you a ROC curve, the goal of these is to take up the area of this graph as much as possible. Essentially looking like a square if very accurate and at least over this half of the graph as otherwise that would be the same as random guess work. As we can see when comparing our Financial model and LendingClub’s grading system we are slightly ahead of the grading. 
+
+If you want a specific number to go with this we use an AUC score standing for “Area Under Curve” which for our Finance Model is 0.68 compared to the Grade Model at 0.66 and the State Model being 0.59. There isn’t much in it but when it comes to a potential investment of a tens of thousand dollars every predictive point counts. 
+
+To validate the results I have also done a K-fold Cross Validation which is where you subset your data in 10 different folds you repeat these same calculations 10 times and then find the average. So you’ll be glad to know the mean for the Finance Model was 0.683 and the Grade Model was 0.659 and the State Model is 0.58 so we can trust that the data and results are reliable. 
+
+I just threw a lot of numbers and terms at you there so let’s dial back a few notches and cut through some of the jargon. If you’d like the short answer what do these scores mean they’re solid. They’re fine but nothing to write home about. Below 0.7 is a score where it is better than random guesswork but not really at the stages of a reliable predictor. 
+
+What we can tell you from here is the positive that the grading model is already a solid foundation so if you were planning to invest in a loan you can already use that however using other variables like their income, their credit score, loan term and the interest rate tips you into a slightly better model.
+
+On the State Model there are also some issues where we are throwing so many variables at it the model could easily be described as overfit meaning the model would only fit very niche circumstances to match the prediction. Three out of four variables have over 10 categorisations with there being 50 US states to choose from. However we will go back to these variables with a better measurement.
+
+The financial model and grading models are also only helpful to a certain extent as it is quite obvious that people with a high income and good credit are more likely to be able to pay back their loans and those people are rewarded with a competitive interest rate meaning there is less money to be made off the back of their reliability. LendingClub is still a business so we need to look at making money off these loans. 
+
+Another way of measuring the success of the lending type is by measuring the profitability on each loan. This is done by taking the full amount paid and negating it from the loan amount. If the loan is full paid off it will calculate how much profit is made and if the loan was defaulted it will inform how deep the loss was. 
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = grade, y = profit_loss, fill = grade))+
+  geom_col()+ 
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue"))+
+   labs(x = "Grade\n", y = "\nProfitability($US1000)", title = "Profitability over Grade\n")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
+```
+
+Using this calculation and going back to the grading system we can see that there is not much profit generated for lenders if they back those in Grade A whereas they will generate decent returns by backing higher risk but higher reward categories like grades B and D. 
+
+Using this profitability calculation we can also get a much deeper understanding of unreliable variables when looking to get a loan. I have calculated the profitability of both the purposes of getting a loan and the US states. All the purposes are present but to keep this graph brief I have made it the top 5 most and least profitable US states.
+
+```{r}
+lending %>% 
+  group_by(purpose) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = reorder(purpose, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_col()+
+  labs(x = "Purpose for Loan\n", y = "\nProfit/Loss(US$1000s)", title = "Profitability of Loan Purpose\n")+
+   scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip()
+```
+
+```{r}
+loss_states <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(profit_loss) %>% 
+  head(5)
+
+loss_states
+
+high_states <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(desc(profit_loss)) %>% 
+  head(5)
+
+money_states <- bind_rows(loss_states, high_states) %>% 
+  arrange(desc(profit_loss))
+
+money_states %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = reorder(state_name, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_bar(stat = "identity")+
+    labs(x = "US State\n", y = "\nProfit/Loss(US$1000s)", title = "Most and Least Profitable US States\n")+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  coord_flip()
+
+```
+
