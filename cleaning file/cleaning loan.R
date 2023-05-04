@@ -30,6 +30,13 @@ lending_cleaning <- lending %>%
   )) %>% 
   drop_na(loan_amnt)
 
+lending_cleaning <- lending_cleaning %>% 
+  mutate(purpose = str_replace(purpose, "_", " ")) %>% 
+  select(-c(installment, emp_title, desc, title, state_abb)) 
+
+lending_cleaning <- lending_cleaning %>% 
+  mutate(home_ownership = str_to_title(home_ownership)) %>% 
+  mutate(purpose = str_to_title(purpose))
 
 lending_cleaning %>% 
   distinct(loan_status)
@@ -38,3 +45,5 @@ lending_cleaning %>%
   summarise(count = sum(is.na(loan_amnt)))
 
 skimr::skim(lending_cleaning)
+
+write_csv(lending_cleaning, "Final_Project/clean data/leanding_cleaning.csv")

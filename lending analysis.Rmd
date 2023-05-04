@@ -8,7 +8,7 @@ library(tidyverse)
 ```
 
 ```{r}
-lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
+lending <- read_csv("clean data/leanding_cleaning.csv")
 ```
 
 ```{r}
@@ -154,5 +154,425 @@ lending %>%
 lending %>% 
   ggplot(aes(x = sub_grade, y = annual_inc))+
   geom_col()
+```
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(int_rate = mean(int_rate)) %>% 
+  ggplot(aes(x = grade, y = int_rate, fill = grade)) +
+  geom_col()+
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue"))+
+   labs(x = "Grade\n", y = "\nInterest Rate (%)", title = "Interest Rate over LendingClub Grades\n")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
+
+ggsave("gradesvsinterest.jpg")
+
+```
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = grade, y = profit_loss, fill = grade))+
+  geom_col()+ 
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue"))+
+   labs(x = "Grade\n", y = "\nProfitability($US1000)", title = "Profitability over Grade\n")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
+
+ggsave("profitovergrade.jpg")
+```
+
+```{r}
+lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(profit_loss) %>% 
+  head(10) %>% 
+  ggplot(aes(x = state_name, y = profit_loss))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(desc(profit_loss)) %>% 
+  head(10) %>% 
+  ggplot(aes(x = state_name, y = profit_loss))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+lending %>% 
+  summarise(loan_amnt = mean(loan_amnt))
+```
+
+```{r}
+lending %>% 
+  summarise(max_loan = max(loan_amnt))
+```
+
+```{r}
+lending %>% 
+  summarise(min_loan = min(loan_amnt))
+```
+
+
+```{r}
+lending %>% 
+  summarise(loan_amnt = median(loan_amnt))
+```
+
+```{r}
+lending %>% 
+  summarise(int_rate = mean(int_rate))
+```
+```{r}
+lending %>% 
+  summarise(max_int = max(int_rate))
+```
+
+```{r}
+lending %>% 
+  summarise(min_int = min(int_rate))
+```
+
+```{r}
+lending %>% 
+  group_by(emp_length) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(home_ownership) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(emp_length) %>% 
+  summarise(annual_inc = mean(annual_inc))
+```
+
+```{r}
+lending %>% 
+  group_by(emp_length) %>% 
+  summarise(int_rate = mean(int_rate))
+```
+
+```{r}
+lending %>% 
+  group_by(issue_d) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = fico_range_low, y = profit_loss))+
+  geom_point()
+```
+
+```{r}
+lending %>% 
+  group_by(verification_status) %>% 
+  summarise(profit_loss = sum(profit_loss))
+```
+
+```{r}
+lending %>% 
+  group_by(sub_grade) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  ggplot(aes(x = sub_grade, y = profit_loss))+
+  geom_point()+
+  geom_line(group = 1)
+```
+
+```{r}
+lending %>% 
+  ggplot(aes(x = loan_status))+
+  geom_histogram(stat = "count")
+```
+
+```{r}
+lending %>% 
+  group_by(loan_status) %>% 
+  count(loan_status)
+```
+
+```{r}
+default_freq <- table(lending$loan_status)
+
+default_prop <- prop.table(default_freq)
+
+default_prop
+```
+
+```{r}
+lending %>% 
+  group_by(sub_grade) %>% 
+  summarise(int_rate = mean(int_rate)) %>% 
+  ggplot(aes(x = sub_grade, y = int_rate, fill = sub_grade))+
+  geom_col()+
+  scale_fill_manual(values=c("goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod",
+                             "#9933FF", "#9933FF", "#9933FF", "#9933FF", "#9933FF",
+                            "#33FFFF", "#33FFFF", "#33FFFF", "#33FFFF", "#33FFFF",
+                             "red", "red", "red", "red", "red",
+                             "darkblue",  "darkblue",  "darkblue",  "darkblue",  "darkblue",
+                            "darkolivegreen4", "darkolivegreen4", "darkolivegreen4", "darkolivegreen4", "darkolivegreen4",
+                            "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue"))+
+  labs(x = "Grade", y = "Interest Rate (%)", title = "Interest Rate over LendingClub Grades")+
+  theme(legend.position = "none")+
+  coord_flip() 
+
+ggsave("LC_grading.pdf")
+ggsave("LC_grading.jpg")
+
+```
+
+```{r}
+lending %>% 
+  filter(state_name == "Nevada") %>% 
+  summarise(annual_inc = mean(annual_inc))
+```
+```{r}
+lending %>% 
+  filter(state_name == "Nevada") %>% 
+  group_by(purpose) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  ggplot(aes(x = purpose, y = profit_loss))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+nevada <- lending %>% 
+  filter(state_name == "Nevada")
+
+nevada_default_freq <- table(nevada$loan_status)
+
+nevada_default_prop <- prop.table(nevada_default_freq)
+
+nevada_default_prop
+```
+
+
+```{r}
+lending %>% 
+  filter(state_name == "New York") %>% 
+  summarise(annual_inc = mean(annual_inc))
+```
+
+```{r}
+lending %>% 
+  group_by(purpose) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = reorder(purpose, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_col()+
+  labs(x = "Purpose for Loan\n", y = "\nProfit/Loss(US$1000s)", title = "Profitability of Loan Purpose\n")+
+   scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip()
+
+ggsave("profitabilitypurpose.jpg")
+```
+
+```{r}
+new_york <- lending %>% 
+  filter(state_name == "New York")
+
+new_york_default_freq <- table(new_york$loan_status)
+
+new_york_default_prop <- prop.table(new_york_default_freq)
+
+new_york_default_prop
+```
+
+```{r}
+new_york %>% 
+  summarise(loan_amnt = mean(loan_amnt),
+dti = mean(dti),
+fico_range_low = mean(fico_range_low),
+int_rate = mean(int_rate))
+```
+```{r}
+nevada %>% 
+  summarise(loan_amnt = mean(loan_amnt),
+dti = mean(dti),
+fico_range_low = mean(fico_range_low),
+int_rate = mean(int_rate))
+```
+
+```{r}
+lending %>% 
+  filter(state_name == "New York" | state_name == "Nevada") %>% 
+  group_by(purpose, state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  ggplot(aes(x = reorder(purpose, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_col()+
+  facet_wrap(~state_name, scales = "free_y")+
+    labs(x = "Purpose for Loan", y = "Profit/Loss(US$)", title = "State Difference in Profitability of Loan Purpose")+
+  theme(axis.text.x = element_text(angle=45, 
+                                       hjust = 1))+
+  theme_minimal()+
+   theme(axis.text.x = element_text(angle=45, 
+                                       hjust = 1))+
+   scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))
+
+ggsave("Nevada_New_York.jpg")
+```
+
+```{r}
+loss_states <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(profit_loss) %>% 
+  head(5)
+
+loss_states
+
+high_states <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(desc(profit_loss)) %>% 
+  head(5)
+
+money_states <- bind_rows(loss_states, high_states) %>% 
+  arrange(desc(profit_loss))
+
+money_states %>% 
+  mutate(profit_loss = profit_loss/1000) %>% 
+  ggplot(aes(x = reorder(state_name, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_bar(stat = "identity")+
+    labs(x = "US State\n", y = "\nProfit/Loss(US$1000s)", title = "Most and Least Profitable US States\n")+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  coord_flip()
+
+ggsave("ProfitableStates.jpg")
+                         
+```
+
+```{r}
+lending %>% 
+  group_by(sub_grade) %>% 
+  count(sub_grade)
+  summarise(sub_grade_median = median(n))
+```
+
+```{r}
+lending %>% 
+  group_by(purpose) %>% 
+  summarise(profit_loss = mean(profit_loss)) %>% 
+  ggplot(aes(x = reorder(purpose, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_col()+
+  labs(x = "Purpose for Loan\n", y = "\nProfit/Loss(US$)", title = "Profitability of Loan Purpose\n")+
+   scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip()
+
+ggsave("meanprofitabilitypurpose.jpg")
+```
+
+
+```{r}
+loss_states2 <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = mean(profit_loss)) %>% 
+  arrange(profit_loss) %>% 
+  head(5)
+
+loss_states2
+
+high_states2 <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = mean(profit_loss)) %>% 
+  arrange(desc(profit_loss)) %>% 
+  head(5)
+
+money_states2 <- bind_rows(loss_states2, high_states2) %>% 
+  arrange(desc(profit_loss))
+
+money_states2 %>% 
+  ggplot(aes(x = reorder(state_name, profit_loss), y = profit_loss, fill = profit_loss < 0))+
+  geom_bar(stat = "identity")+
+    labs(x = "US State\n", y = "\nProfit/Loss(US$)", title = "Most and Least Profitable US States\n")+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  scale_fill_manual(guide = FALSE,
+                          name = 'change < 0', 
+                          values = setNames(c('indianred', 'dodgerblue'), c(T, F)))+
+  coord_flip()
+
+ggsave("meanprofitabilitystate.jpg")
+
+```
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(profit_loss = mean(profit_loss)) %>% 
+  ggplot(aes(x = grade, y = profit_loss, fill = grade))+
+  geom_col()+ 
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue"))+
+   labs(x = "Grade\n", y = "\nProfitability($US)", title = "Profitability over Grade\n")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
+
+ggsave("meanprofitabilitygrade.jpg")
+
+```
+
+```{r}
+lending %>% 
+  group_by(grade) %>% 
+  summarise(loan_amnt = sum(loan_amnt)) %>% 
+  ggplot(aes(x = grade, y = loan_amnt, fill = grade))+
+  geom_col()+ 
+  scale_fill_manual(values=c("goldenrod", "#9933FF", "#33FFFF", "red", "darkblue", "darkolivegreen4", "dodgerblue")) +
+   theme_minimal()+
+  theme(legend.position = "none")+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
+  coord_flip() 
 ```
 

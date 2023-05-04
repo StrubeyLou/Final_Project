@@ -15,7 +15,6 @@ lending <- read_csv("Final_Project/clean data/leanding_cleaning.csv")
 
 ```{r}
 lending_tree <- lending %>% 
-  select(-c(loan_amnt, installment, emp_title, issue_d, desc, title, state_abb, total_pymnt_inv, profit_loss, state_name, sub_grade, emp_length, home_ownership, purpose, grade)) %>% 
   mutate_if(is_character, as_factor)
 ```
 

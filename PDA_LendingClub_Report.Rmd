@@ -1,0 +1,53 @@
+---
+title: "PDA - LendingClub"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Context
+### Business intelligence and data-driven decision making
+
+**What insights can the business/organisation gain from your analysis and how will your analysis help the business/organisation make better decisions?**
+
+We are here to investigate the default rate of loans from people applying to LendingClub. They want us to investigate who should be targetted for repeat custom and who should be avoided due to a high default rate.
+
+**Briefly describe the business/organisation and where your analysis fits within its aims/activity.**
+
+LendingClub are a fintech corporation based in Los Angeles, California. We have been tasked to analyse their data to find patterns in the default rate so the lose less money on people not paying back their loans. 
+
+**Briefly describe your data sources and which were internal (provided by the organisation) and external (not sourced from the organisation’s data)**
+
+We were given 3 dataset, the most substantial being a csv file of over 40,000 different loans from 2007 to 2011. The dataset also contained information on the lenders personal and financial history. The other two datasets were a translation of the state codes being full state names and a subcategory of lender grade being from A-G from A1-G5. 
+
+**What kind of data did you work with? E.g. categorical and numerical data and their sub-types.**
+The data is a mix of categorical and numeric data. 
+
+**What format did your data come in? E.g. all downloaded flat files (CSV) or any data from APIs, scraping etc.**
+The data came in flat csv files. 
+
+**Briefly describe the quality of the data and whether you have any reasons to suggest the data is biased e.g. only data from a specific demographic even though a broader demographic would be of interest to the organisation.**
+
+The data has a high quantity of variables with over 100 different variables being a mix of personal and financial history. It would be hard to tell if there were any biases as the data was anonymised with no details on their name, sex, address, race or location. 
+
+
+**Do you have any ethical concerns regarding the sourcing and extraction of your data?**
+There were partial zip codes which were kept within the dataset however these were taken by me when data cleaning. 
+
+**Are there any ethical implications of the business requirements?**
+People are risking their capital by taking out a loan which they may not neccessarily be able to pay back. 
+
+**What were the main stages in your data analysis process?** 
+
+All of the data analysis was used in R, first step was cleaning the data by taking out many of the variables which were not relevant, then wrangling the data to get some findings then using ggplot to create visualisations of those findings. 
+
+
+**What were the main tools you used for your analysis?** 
+
+I mainly used R for my analysis but then used several packages.
+
+I used tidyverse to clean the data and calculate my averages like the average loan cost so this would cover my diagnostic analytics. 
+
+I used GGally and pROC packages to create my logistic regression model. I used ggally to look through the variables in ggpairs so this would cover my descriptive and diagnostic analytics as ggpairs was used to find the correlation between the loan had been paid off and several different variables both numeric and categorial. 
+
+I used pROC to create a ROC Curve which presented which of my models was the most accurate so this would cover both Diagnostic and Predictive Analytics as the ROC curve and AUC score shows what variables are high predictors both in the present and future. 

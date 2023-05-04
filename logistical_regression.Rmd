@@ -61,18 +61,29 @@ roc_lend_grade <- lend_grade %>%
 ```
 ```{r}
 roc_curve <- ggroc(data = list(
-  "Built Model" = roc_lend_predict,
-  "Grade Model" = roc_lend_grade),
+  "Financial Model" = roc_lend_predict,
+  "Grade Model" = roc_lend_grade,
+  "State Model" = roc_lend_state),
                    legacy.axes = TRUE) +
-  labs(x = "Specificity", y = "Sensitivity", linetype="Model Name")+ 
+  geom_abline(linetype = "dashed")+
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "Financial Model vs Grading Model vs State Model", name = "Model Name")+ 
+  scale_color_discrete(name = "Model Name")+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16))+
   coord_fixed()
 
 roc_curve
+
+ggsave("roc_curve.jpg")
 ```
 
 ```{r}
 auc(roc_lend_predict)
 auc(roc_lend_grade)
+auc(roc_lend_state)
+
 ```
 
 ```{r}
@@ -187,3 +198,55 @@ for (i in 1:length(folds)) {
   
 mean(auc_results_grades)
 ```
+
+```{r}
+model_states <- glm(loan_status ~ emp_length + home_ownership + purpose + state_name,
+                 data = train_lend,
+                 family = binomial(link = "logit"))
+summary(model_states)
+```
+
+
+```{r}
+lend_states <- train_lend %>% 
+  add_predictions(model_states, type = "response")
+```
+
+```{r}
+roc_lend_state <- lend_states %>% 
+  roc(response = loan_status, predictor = pred)
+```
+
+```{r}
+roc_curve2 <- ggroc(data = roc_lend_state, 
+                   legacy.axes = TRUE) +
+  geom_abline(linetype = "dashed")+
+  labs(x = "Specificity", y = "Sensitivity", title = "Grading Model vs Financial Model", name = "Model Name")+ 
+  scale_color_discrete(name = "Model Name")+
+  coord_fixed()
+
+roc_curve2
+```
+
+```{r}
+auc(roc_lend_state)
+```
+
+```{r}
+lr_auc_states <- function(train, test) {
+  lr_model_states <- glm(loan_status ~ emp_length + home_ownership + purpose + state_name, data = train, family = binomial)
+  pred <- predict(lr_model_states, test, type = "response")
+  roc(test$loan_status, pred)$auc
+}
+```
+
+```{r}
+auc_results_states <- NULL
+for (i in 1:length(folds)) {
+  auc_results_states[i] <- lr_auc_states(lending_model %>% slice(-folds[[i]]),
+                           lending_model %>% slice(folds[[i]]))
+}
+  
+mean(auc_results_states)
+```
+
