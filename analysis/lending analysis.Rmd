@@ -8,7 +8,7 @@ library(tidyverse)
 ```
 
 ```{r}
-lending <- read_csv("clean data/leanding_cleaning.csv")
+lending <- read_csv("../clean data/leanding_cleaning.csv")
 ```
 
 ```{r}
@@ -479,6 +479,35 @@ money_states %>%
 ggsave("ProfitableStates.jpg")
                          
 ```
+
+```{r}
+
+loss_states <- lending %>% 
+  group_by(state_name) %>% 
+  summarise(profit_loss = sum(profit_loss)) %>% 
+  arrange(profit_loss) %>% 
+  head(5)
+
+loss_states %>% 
+  mutate(profit_loss = profit_loss / 1000) %>% 
+  ggplot(aes(x = reorder(state_name, profit_loss), y = profit_loss, fill = profit_loss < 0)) +
+  geom_bar(stat = "identity") +
+  labs(x = "US State\n", y = "\nTotal Loss per State (US$ in Thousands)", title = "Least Profitable US States\n") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 13),
+        axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16)) +
+  scale_fill_manual(guide = FALSE,
+                    name = 'Loss > 0', 
+                    values = setNames(c('indianred'), c(T))) +
+  coord_flip()
+
+
+ggsave("LeastProfitableStates.jpg")
+                         
+```
+```
+
 
 ```{r}
 lending %>% 
